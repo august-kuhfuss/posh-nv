@@ -1,19 +1,20 @@
-$configFile = "$PSScriptRoot/config.toml"
+#Requires -Version 5.1
+
+$configFile = "$PSScriptRoot/config.json"
 if ((Test-Path $configFile) -eq $false) {
-    Write-Output "config.toml not found. exiting"
+    Write-Output "config.json not found. exiting"
     return
 }
-$config = Get-Content $configFile | ConvertFrom-Toml
 
-$hosts = $config.hosts
+$(Get-Content $configFile | ConvertFrom-Json).app_hosts | ForEach-Object -Parallel {
+    $app_host = $PSItem
+    $session = New-PSSession $app_host
 
-$hosts | ForEach-Object -Parallel {
-    $session = New-PSSession $_
-
-    Invoke-Command -Session $session -ScriptBlock {
+    $script = {
         New-Item -ItemType Directory "/temp/eNVenta/archive" -ErrorAction SilentlyContinue
-        New-Item -ItemType Directory "/eNVenta/scripts" -ErrorAction SilentlyContinue
     }
 
-    Copy-Item -Path "$($using:PSScriptRoot)/watchtower.ps1" -Destination "c:/eNVenta/scripts/watchtower.ps1" -ToSession $session
+    Write-Host "finished setup $app_host"
+
+    Invoke-Command -ScriptBlock $script -Session $session
 }
