@@ -1,2 +1,4 @@
 config.json
 !schemas/*.json
+
+node_modules/
