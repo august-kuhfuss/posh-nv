@@ -14,6 +14,7 @@ if ((Test-Path $configFile) -eq $false) {
 }
 $config = Get-Content $configFile | ConvertFrom-Json
 
+# convert
 $settings = $config.packages | ForEach-Object {
     $package = $PSItem
     $package.versions | ForEach-Object {
@@ -27,10 +28,46 @@ $settings = $config.packages | ForEach-Object {
             }
         }
     }
-} | Where-Object {
-    # split package:version:config from $configs
-    $Configs -match "$($PSItem.package.short_name):$($PSItem.version.name):$($PSItem.config.short_name)"
 }
+
+# package:version:config -> single object
+# package:version:(config1, config2) -> array of objects
+$parsedInput = $Configs | ForEach-Object {
+    $tokens = $PSItem -split ":"
+
+    $package = $tokens[0]
+    $version = $tokens[1]
+    $configuration = $tokens[2]
+
+    # if config is a list, return an array of objects
+    if ($configuration -match "\((.+)\)") {
+        $configuration = $matches[1] -split ","
+        $configuration | ForEach-Object {
+            [PSCustomObject]@{
+                package = $package
+                version = $version
+                config  = $_
+            }
+        }
+        return
+    }
+
+    [PSCustomObject]@{
+        package = $package
+        version = $version
+        config  = $configuration
+    }
+}
+
+$matched = $parsedInput | ForEach-Object {
+    $item = $PSItem
+    $settings | Where-Object {
+        $PSItem.package.short_name -eq $item.package -and
+        $PSItem.version.name -eq $item.version -and
+        $PSItem.config.short_name -eq $item.config
+    }
+}
+
 
 $repo = $config.repository
 $repoArgs = @(
@@ -43,7 +80,7 @@ $repoArgs = @(
 
 $cli = $(Get-Childitem -Path "$env:ProgramFiles\Framework Systems\" -Recurse -Force "FSConsole.exe" -ErrorAction SilentlyContinue) | Select-Object -First 1
 
-$settings | ForEach-Object -Parallel {
+$matched | ForEach-Object -Parallel {
     $setting = $PSItem
     $name = "$($setting.package.name)_$($setting.version.name)_$($setting.config.short_name)"
     $workDir = "\temp\eNVenta\"
