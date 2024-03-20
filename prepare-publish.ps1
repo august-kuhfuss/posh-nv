@@ -29,7 +29,7 @@ $settings = $config.packages | ForEach-Object {
     }
 } | Where-Object {
     # split package:version:config from $configs
-    $Configs -match "$($PSItem.package.name):$($PSItem.version.name):$($PSItem.config.short_name)"
+    $Configs -match "$($PSItem.package.short_name):$($PSItem.version.name):$($PSItem.config.short_name)"
 }
 
 $repo = $config.repository
@@ -46,12 +46,14 @@ $cli = $(Get-Childitem -Path "$env:ProgramFiles\Framework Systems\" -Recurse -Fo
 $settings | ForEach-Object -Parallel {
     $setting = $PSItem
     $name = "$($setting.package.name)_$($setting.version.name)_$($setting.config.short_name)"
-    $dir = "\temp\eNVenta\$name"
+    $workDir = "\temp\eNVenta\"
+    $dir = "$workDir\$name"
 
     # compile
     $p2goArgs = $($using:repoArgs) + @(
-        "\LABELID", $setting.version.label_id,
-        "\SETTING", "`"$($setting.config.internal_full_name)`"",
+        "\PACKAGE", $setting.package.name,
+        "\VERSION", $setting.version.name,
+        "\SETTING", "`"$($setting.config.name)`"",
         "\PUBLISH2GO"
     )
     $p2go = Start-Process -FilePath $using:cli -ArgumentList $p2goArgs -NoNewWindow -PassThru -Wait
@@ -61,8 +63,9 @@ $settings | ForEach-Object -Parallel {
 
     # create settings
     $createSettingsArgs = $($using:repoArgs) + @(
-        "\LabelID", $setting.version.label_id,
-        "\ExportSetting", "`"$($setting.config.internal_full_name)`"",
+        "\PACKAGE", $setting.package.name,
+        "\VERSION", $setting.version.name,
+        "\ExportSetting", "`"$($setting.config.name)`"",
         "\SettingFile", "$dir\settings.FSSetting"
     )
     $createSettings = Start-Process -FilePath $using:cli -ArgumentList $createSettingsArgs -NoNewWindow -PassThru -Wait
@@ -74,12 +77,13 @@ $settings | ForEach-Object -Parallel {
     Copy-Item -Path "$($using:PSScriptRoot)\publish.ps1" -Destination "$dir\publish.ps1"
 
     # zip
-    $zip = "$env:TEMP\$($using:timestamp)-$name.zip"
+    $zip = "$workDir\$name-$($using:timestamp).zip"
     Compress-Archive -Path "$dir\*" -DestinationPath $zip
 
     # distribute
+    $targerDir = "C:\temp\eNVenta"
     $session = New-PSSession $setting.config.target_host
-    Copy-Item -Path $zip -Destination $zip -ToSession $session
+    Copy-Item -Path $zip -Destination $targerDir -ToSession $session
 
     # cleanup
     Remove-Item $zip
