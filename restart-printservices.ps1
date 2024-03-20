@@ -1,19 +1,19 @@
-$configFile = "$PSScriptRoot/config.toml"
+#Requires -Version 7
+
+$configFile = "$PSScriptRoot/config.json"
 if ((Test-Path $configFile) -eq $false) {
-    Write-Output "config.toml not found. exiting"
+    Write-Output "config.json not found. exiting"
     return
 }
-$config = Get-Content $configFile | ConvertFrom-Toml
 
-$hosts = $config.printHosts
-
-$hosts | Foreach-Object  -Parallel {
-    $session = New-PSSession -ComputerName $_
+$(Get-Content $configFile | ConvertFrom-Json).print_hosts | Foreach-Object  -Parallel {
+    $ps_host = $_
+    $session = New-PSSession -ComputerName $ps_host
 
     $script = {
         get-childitem -path "\eNVenta" -recurse -include PrintServiceRestart.exe | ForEach-Object {
             Start-Process $_
-            Write-Output "done $_"
+            Write-Output "done $ps_host $_"
         }
     }
 
