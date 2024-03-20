@@ -1,0 +1,104 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "app_hosts": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "uniqueItems": true,
+            "minItems": 1
+        },
+        "print_hosts": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "uniqueItems": true,
+            "minItems": 1
+        },
+        "repository": {
+            "type": "object",
+            "properties": {
+                "host": {
+                    "type": "string"
+                },
+                "database_name": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "host",
+                "database_name",
+                "username",
+                "password"
+            ]
+        },
+        "packages": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "versions": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "label_id": {
+                                    "type": "string"
+                                },
+                                "configurations": {
+                                    "type": "array",
+                                    "minLength": 1,
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "short_name": {
+                                                "type": "string"
+                                            },
+                                            "internal_full_name": {
+                                                "type": "string"
+                                            },
+                                            "target_host": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "short_name",
+                                            "internal_full_name",
+                                            "target_host"
+                                        ]
+                                    }
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "label_id",
+                                "configurations"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "versions"
+                ]
+            }
+        }
+    }
+}
