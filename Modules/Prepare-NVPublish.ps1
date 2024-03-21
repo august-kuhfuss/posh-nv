@@ -1,5 +1,3 @@
-Import-Module .\ConfigLoader.psm1
-
 function Prepare-NVPublish {
     param(
         [Parameter(Mandatory)]

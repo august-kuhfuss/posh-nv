@@ -1,5 +1,3 @@
-Import-Module .\ConfigLoader.psm1
-
 function Restart-NVPrintServices {
     Get-NVPrintHosts | Foreach-Object -Parallel {
         $ps_host = $PSItem

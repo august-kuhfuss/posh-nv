@@ -1,6 +1,3 @@
-Import-Module .\ConfigLoader.psm1
-Import-Module .\FSConsole.psm1
-
 function Compile-NVPackages {
     param(
         [string[]]$PackageNames

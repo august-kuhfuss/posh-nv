@@ -1,32 +1,21 @@
-$defaultConfigPath = "$HOME\.posh-nv\config.json"
-$defaultConfig = @{
-    "`$schema"  = "https://raw.githubusercontent.com/august-kuhfuss/posh-nv/main/schemas/config.json"
-    app_hosts   = @()
-    print_hosts = @()
-    repository  = @{
-        host          = "localhost"
-        database_name = "NVRep"
-        username      = "NVRep"
-        password      = "NVRep"
-    }
-    packages    = @()
-}
-
-if ((Test-Path $defaultConfigPath) -eq $false) {
-    Write-Output "default config not found. Creating default config at $defaultConfigPath"
-    $defaultConfig | ConvertTo-Json | Out-File $defaultConfigPath
-}
-
 function Get-NVConfig {
-    param(
-        [string]$Path = $defaultConfigPath
-    )
+    $path = "$HOME\.posh-nv\config.json"
+    if ((Test-Path $path) -eq $false) {
+        Write-Output "default config not found. Creating default config at $path"
 
-    if ((Test-Path $Path) -eq $false) {
-        Write-Output "$Path not found."
+        # create directories if not exists
+        if ((Test-Path "$HOME\.posh-nv") -eq $false) {
+            New-Item -ItemType Directory -Path "$HOME\.posh-nv"
+        }
+
+        @{ "`$schema" = "https://raw.githubusercontent.com/august-kuhfuss/posh-nv/main/schemas/config.json" } | ConvertTo-Json | Out-File $path
+    }
+
+    if ((Test-Path $path) -eq $false) {
+        Write-Output "$path not found."
 
     }
-    return (Get-Content $defaultConfigPath -Raw | ConvertFrom-Json)
+    return (Get-Content $path -Raw | ConvertFrom-Json)
 }
 Export-ModuleMember -Function Get-NVConfig
 
@@ -43,7 +32,7 @@ function Get-NVPrintHosts {
 Export-ModuleMember -Function Get-NVPrintHosts
 
 function Get-FSRepoArgs {
-    $config = Get-Config
+    $config = Get-NVConfig
     $repo = $config.repository
     return @(
         "\SERVER", $repo.host,
@@ -53,11 +42,10 @@ function Get-FSRepoArgs {
         "\ConnectionType", "SqlServer"
     )
 }
-
 Export-ModuleMember -Function Get-FSRepoArgs
 
 function Get-NVPackages {
-    $config = Get-Config
+    $config = Get-NVConfig
 
     foreach ($package in $config.packages) {
         $package.versions | ForEach-Object {
@@ -73,5 +61,4 @@ function Get-NVPackages {
         }
     }
 }
-
 Export-ModuleMember -Function Get-NVPackages
