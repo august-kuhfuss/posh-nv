@@ -1,0 +1,42 @@
+Import-Module .\ConfigLoader.psm1
+Import-Module .\FSConsole.psm1
+
+function Compile-NVPackages {
+    param(
+        [string[]]$PackageNames
+    )
+
+    $packages = Get-NVPackages
+
+    # compile all if nothing is specified
+    if ($null -eq $PackageNames) {
+        $PackageNames = $packages.name
+    }
+
+    $matched = $packages | Where-Object {
+        $PackageNames -match $_.name
+    }
+
+    # if no matches, error and exit
+    if ($matched.Count -eq 0) {
+        Write-Output "package(s) `"$($PackageNames -join ", ")`" not found. exiting"
+        return
+    }
+
+    $cli = Get-FSConsole
+    $repoArgs = Get-FSRepoArgs
+    $matched | ForEach-Object -Parallel {
+        $package = $PSItem
+
+        $compileArgs = $($using:repoArgs) + @(
+            "\PACKAGE", $package.label_id,
+            "\VERSION", $package.versions[0].name,
+            "\COMPILE"
+        )
+        $compile = Start-Process -FilePath $($using:cli) -ArgumentList $compileArgs -NoNewWindow -PassThru -Wait
+        Write-Output "Process Ended with Code $($compile.ExitCode)"
+    }
+}
+Export-ModuleMember -Function Compile-NVPackages
+
+
