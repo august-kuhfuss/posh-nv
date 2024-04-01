@@ -1,7 +1,7 @@
 {
+  "packageManager": "bun@1.1.0",
   "scripts": {
-    "prepare": "husky",
-    "commit-lint": "commitlint --edit"
+    "prepare": "husky"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.2.1",

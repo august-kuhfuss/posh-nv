@@ -1,1 +1,1 @@
-yarn run commit-lint $1
+bun commitlint --edit $1
