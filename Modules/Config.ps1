@@ -8,7 +8,7 @@ function Get-NVConfig {
             New-Item -ItemType Directory -Path "$HOME\.posh-nv"
         }
 
-        @{ "`$schema" = "https://raw.githubusercontent.com/august-kuhfuss/posh-nv/main/schemas/config.json" } | ConvertTo-Json | Out-File $path
+        @{ "`$schema" = "https://raw.githubusercontent.com/august-kuhfuss/posh-nv/main/schemas/config.schema.json" } | ConvertTo-Json | Out-File $path
     }
 
     if ((Test-Path $path) -eq $false) {
