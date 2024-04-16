@@ -22,7 +22,7 @@ function Prepare-NVPublish {
                 [PSCustomObject]@{
                     package = $package
                     version = $version
-                    config  = $_
+                    config  = $_.Trim()
                 }
             }
             return
@@ -53,19 +53,20 @@ function Prepare-NVPublish {
         $dir = "$workDir\$name"
 
         # compile
-        $p2goArgs = $($using:repoArgs) + @(
+        $p2goArgs = $using:repoArgs + @(
             "\PACKAGE", $setting.package.name,
             "\VERSION", $setting.version.name,
             "\SETTING", "`"$($setting.config.name)`"",
             "\PUBLISH2GO"
         )
+
         $p2go = Start-Process -FilePath $using:cli -ArgumentList $p2goArgs -NoNewWindow -PassThru -Wait
         if ($p2go.ExitCode -ne 0) {
             return
         }
 
         # create settings
-        $createSettingsArgs = $($using:repoArgs) + @(
+        $createSettingsArgs = $using:repoArgs + @(
             "\PACKAGE", $setting.package.name,
             "\VERSION", $setting.version.name,
             "\ExportSetting", "`"$($setting.config.name)`"",
@@ -77,10 +78,11 @@ function Prepare-NVPublish {
         }
 
         # include publish script
-        Copy-Item -Path "$($using:PSScriptRoot)\publish.ps1" -Destination "$dir\publish.ps1"
+        $url = "https://raw.githubusercontent.com/august-kuhfuss/posh-nv/main/resources/publish.ps1"
+        Invoke-WebRequest $url -OutFile "$dir\publish.ps1"
 
         # zip
-        $zip = "$workDir\$name-$($using:timestamp).zip"
+        $zip = "$workDir\$name-$using:timestamp.zip"
         Compress-Archive -Path "$dir\*" -DestinationPath $zip
 
         # on target, create directory if not exists
