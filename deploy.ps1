@@ -1,1 +1,1 @@
-Import-Module -Force -Verbose .\posh-nv.psm1
+Import-Module -Scope Global -Force .\posh-nv.psm1

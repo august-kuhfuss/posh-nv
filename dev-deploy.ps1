@@ -1,0 +1,1 @@
+Import-Module -Force -Verbose .\posh-nv.psm1
