@@ -3,7 +3,7 @@ function Copy-CrystalReports {
         [string[]]$DestinationHosts
     )
 
-    $config = Get-Content "$PSScriptRoot\config.json" | ConvertFrom-Json
+    $config = Get-NVConfig
 
     # if empty, copy to all hosts
     if ($null -eq $DestinationHosts) {
@@ -21,20 +21,19 @@ function Copy-CrystalReports {
     }
 
     # create zip
-    $source = "$env:USERPROFILE/FS45/Compile/KUHFDB5N.KUHFUSS_1_NVRep_Kuhfuss_4.5_sotnikow/Report"
     $zip = "$env:TEMP/reports.zip"
-    Compress-Archive -Force "$source/*.rpt" $zip
+    Compress-Archive -Force "$($config.reports_source)/*.rpt" $zip
 
     # copy and expand
     $hosts | ForEach-Object {
         $hst = $PSItem
         $session = New-PSSession -ComputerName $hst
-        $dstZip = "$env:TEMP/reports.zip"
+        $zipZip = "$env:TEMP/reports.zip"
 
-        Copy-Item -Path $zip -Destination $dstZip -ToSession $session
+        Copy-Item -Path $zip -Destination $zipZip -ToSession $session
 
         Invoke-Command -Session $session -ScriptBlock {
-            $dstZip = "$env:TEMP/reports.zip"
+            $zipZip = "$env:TEMP/reports.zip"
 
             # get all folders Report under C:/eNVenta/*/Report
             $rptFolders = Get-ChildItem -Path "C:/eNVenta" -Recurse -Directory -Force -ErrorAction SilentlyContinue | Where-Object {
@@ -43,11 +42,11 @@ function Copy-CrystalReports {
 
             # expand zip into rptFolders
             $rptFolders.FullName | ForEach-Object {
-                Expand-Archive -Force -Path $dstZip -Destination $_
+                Expand-Archive -Force -Path $zipZip -Destination $_
             }
 
             # remove zip
-            Remove-Item -Path $dstZip
+            Remove-Item -Path $zipZip
         }
 
         Remove-PSSession $session

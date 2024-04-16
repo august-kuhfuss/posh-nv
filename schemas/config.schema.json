@@ -2,6 +2,10 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
     "properties": {
+        "reports_source": {
+            "type": "string",
+            "description": "The path to the directory containing the reports"
+        },
         "app_hosts": {
             "type": "array",
             "items": {
