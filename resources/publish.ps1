@@ -1,12 +1,3 @@
 #Requires -RunAsAdministrator
 #Requires -Version 5
-
-$cli = "$PSScriptRoot/Publish2Go.exe"
-
-$cliArgs = @(
-    "\PUBLISH",
-    "\SETTING", "$PSScriptRoot\settings.FSSetting"
-)
-
-$p = Start-Process $cli -ArgumentList $cliArgs -PassThru -NoNewWindow -Wait
-Exit $p.ExitCode
+Exit $(Start-Process "$PSScriptRoot\Publish2Go.exe" @("\PUBLISH", "\SETTING", "$PSScriptRoot\settings.FSSetting") -PassThru -NoNewWindow -Wait).ExitCode
